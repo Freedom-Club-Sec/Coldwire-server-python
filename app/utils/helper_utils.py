@@ -1,0 +1,16 @@
+from base64 import b64decode, b64encode
+import secrets
+import string
+
+
+def valid_b64(s: str) -> bool:
+    try:
+        b64decode(s, validate=True)
+        return True
+    except Exception:
+        return False
+
+
+def generate_user_id(length: int = 16) -> str:
+    return ''.join(secrets.choice(string.digits) for _ in range(length))
+
