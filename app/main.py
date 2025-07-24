@@ -5,6 +5,7 @@ from app.db.sqlite import init_db
 from app.utils.jwt import check_jwt_exists
 import logging
 
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(threadName)s %(message)s"

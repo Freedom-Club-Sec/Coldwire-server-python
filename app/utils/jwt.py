@@ -4,7 +4,6 @@ import os
 JWT_SECRET = os.environ.get("JWT_SECRET")
 ALGORITHM = "HS512"
 
-
 # We don't expire JWTs as Coldwire doesn't support multiple devices.
 # And we don't implement expiration for JWTs to prevent login and activity timestamp logging -
 # incase the server wasn't malicious and was compromised later.
