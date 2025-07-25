@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Response, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
-from typing import Optional
 from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
