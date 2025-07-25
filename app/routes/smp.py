@@ -5,7 +5,7 @@ from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
 from app.logic.smp import check_new_smp_messages, initiate_new_smp, smp_step_2_processor, smp_step_3_processor, smp_failure_processor
-from app.utils.helper_utils import valid_b64
+from app.utils.helper_utils import valid_b64, valid_hex
 import asyncio
 import jwt
 import os
@@ -91,6 +91,10 @@ async def smp_step_2(payload: SMP_2, response: Response, user=Depends(verify_jwt
         raise HTTPException(status_code=400, detail="Malformed nonce")
   
 
+    # HMAC SHA512 is fixed-size to 64 bytes
+    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != 64:
+        raise HTTPException(status_code=400, detail="Malformed proof")
+  
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
@@ -110,6 +114,10 @@ async def smp_step_3(payload: SMP_3, response: Response, user=Depends(verify_jwt
 
     user_id = user["id"]
 
+    # HMAC SHA512 is fixed-size to 64 bytes
+    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != 64:
+        raise HTTPException(status_code=400, detail="Malformed proof")
+  
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 

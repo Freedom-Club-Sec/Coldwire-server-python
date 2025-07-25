@@ -10,6 +10,12 @@ def valid_b64(s: str) -> bool:
     except Exception:
         return False
 
+def valid_hex(s: str) -> bool:
+    try:
+        bytes.fromhex(s)
+        return True
+    except:
+        return False
 
 def generate_user_id(length: int = 16) -> str:
     return ''.join(secrets.choice(string.digits) for _ in range(length))
