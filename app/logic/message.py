@@ -1,11 +1,9 @@
 from app.db.sqlite import get_db, check_user_exists
 from app.db.redis import get_redis, get_redis_list
 from app.utils.helper_utils import valid_b64
-from base64 import b64encode, b64decode
+from base64 import b64decode
 import json
 import logging
-
-
 
 redis_client = get_redis()
 
@@ -15,7 +13,7 @@ def check_new_messages(user_id: str) -> list:
     redis_client.delete(key)
     return messages
 
-def one_time_pads_batch_processor(user_id: str, recipient_id: str, json_payload: str, payload_signature: str) -> None:
+def otp_batch_processor(user_id: str, recipient_id: str, json_payload: str, payload_signature: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
 
@@ -41,15 +39,16 @@ def one_time_pads_batch_processor(user_id: str, recipient_id: str, json_payload:
 
     payload = {
         "sender": user_id,
-        "type": "new_otp_batch",
+        "msg_type": "new_otp_batch",
         "json_payload": json_payload,
-        "payload_signature": payload_signature
+        "payload_signature": payload_signature,
+        "data_type": "message"
     } 
 
     redis_client.rpush(key, json.dumps(payload))
 
 
-def one_time_pads_message_processor(user_id: str, recipient_id: str, json_payload: str, payload_signature: str) -> None:
+def otp_message_processor(user_id: str, recipient_id: str, json_payload: str, payload_signature: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
 
@@ -72,9 +71,10 @@ def one_time_pads_message_processor(user_id: str, recipient_id: str, json_payloa
 
     payload = {
         "sender": user_id,
-        "type": "new_message",
+        "msg_type": "new_message",
         "json_payload": json_payload,
-        "payload_signature": payload_signature
+        "payload_signature": payload_signature,
+        "data_type": "message"
     } 
 
     redis_client.rpush(key, json.dumps(payload))

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.routes import authentication_router, get_user_router, smp_router, pfs_router, message_router
+from app.routes import authentication_router, get_user_router, smp_router, pfs_router, message_router, data_router
 from app.db.sqlite import init_db
 from app.utils.jwt import check_jwt_exists
 import logging
@@ -22,3 +22,4 @@ app.include_router(get_user_router)
 app.include_router(smp_router)
 app.include_router(pfs_router)
 app.include_router(message_router)
+app.include_router(data_router)
