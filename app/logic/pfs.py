@@ -1,6 +1,5 @@
 from app.db.sqlite import get_db, check_user_exists
 from app.db.redis import get_redis, get_redis_list
-from base64 import b64encode
 import json
 
 
@@ -29,7 +28,7 @@ def delete_old_pfs(target_id: str, sender_id: str) -> None:
     pipe.execute()
 
 
-def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_public_key: str, kyber_signature: str, d5_public_key, d5_signature, pfs_type: str) -> None:
+def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_publickey_hashchain: str, kyber_hashchain_signature: str, d5_public_key, d5_signature, pfs_type: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
   
@@ -40,9 +39,10 @@ def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_public_key: 
 
     payload = {
         "sender": user_id,
-        "kyber_public_key": kyber_public_key,
-        "kyber_signature": kyber_signature,
-        "pfs_type": pfs_type
+        "kyber_publickey_hashchain": kyber_publickey_hashchain,
+        "kyber_hashchain_signature": kyber_hashchain_signature,
+        "pfs_type": pfs_type,
+        "data_type": "pfs"
     } 
 
     if d5_public_key and d5_signature:

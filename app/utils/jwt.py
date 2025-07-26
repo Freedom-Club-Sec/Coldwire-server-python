@@ -1,3 +1,6 @@
+from fastapi import Depends
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import os
 
@@ -18,6 +21,15 @@ def decode_jwt_token(token: str) -> dict:
         return jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
     except jwt.InvalidTokenError:
         raise ValueError("Invalid token")
+
+
+def verify_jwt_token(creds: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
+    try:
+        payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=["HS512"])
+        return payload
+    except jwt.PyJWTError:
+        raise JSONException(status_code=401, content={"status": "failure", "error": "Invalid token"})
+
 
 def check_jwt_exists() -> None:
     JWT_SECRET = os.environ.get("JWT_SECRET")

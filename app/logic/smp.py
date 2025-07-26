@@ -33,16 +33,8 @@ def delete_old_smps(target_id: str, sender_id: str) -> None:
 
 
 # The reason we have each step in its own function is to ensure a client can't manually set the data
-# and to actually have code with no surpises that is easily to audit - even if its ugly,
+# and to actually have code with no surpises that is easily to audit - even if its a bit repetitive,
 # as the SMP implementation is a very important part of Coldwire's security.
-# The server is given 0 trust, but it is assumed the server won't try to crash the client
-# As of now, the server could denial-of-service the client if it wants to, and that's fine.
-# Such crashes are not result of classical bugs i.e. stack overflows, logic bugs, and whatnot. 
-# Rather it is caused by trusting the server will (usually) provide data in its correct type and no missing data.
-# The client code does some sanity checking, but it does not attempt to convert insane data to sane 
-# If a server tries giving invalid or incomplete data anywhere, a Python exception is raised in a thread on the client,
-# and all other threads will crash on purpose as a failsafe mechanism.
-# If you are dealing with a malicious server that is actively crashing you, simply use another.
 
 
 def initiate_new_smp(user_id: str, recipient_id: str, question: str, nonce: str) -> None:
@@ -58,7 +50,8 @@ def initiate_new_smp(user_id: str, recipient_id: str, question: str, nonce: str)
         "sender": user_id,
         "step": 1,
         "question": question,
-        "nonce": nonce
+        "nonce": nonce,
+        "data_type": "smp"
     }))
 
 
@@ -75,7 +68,8 @@ def smp_step_2_processor(user_id: str, recipient_id: str, proof: str, nonce: str
         "sender": user_id,
         "step": 2,
         "proof": proof,
-        "nonce": nonce
+        "nonce": nonce,
+        "data_type": "smp"
     }))
 
 
@@ -92,6 +86,7 @@ def smp_step_3_processor(user_id: str, recipient_id: str, proof: str) -> None:
         "sender": user_id,
         "step": 3,
         "proof": proof,
+        "data_type": "smp"
     }))
 
 
@@ -108,4 +103,5 @@ def smp_failure_processor(user_id: str, recipient_id: str) -> None:
     redis_client.rpush(key, json.dumps({
         "sender": user_id,
         "step": -1,
+        "data_type": "smp"
     }))
