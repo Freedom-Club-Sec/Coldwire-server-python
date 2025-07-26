@@ -29,7 +29,7 @@ def delete_old_pfs(target_id: str, sender_id: str) -> None:
     pipe.execute()
 
 
-def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_public_key: str, kyber_signature: str, d5_public_key, d5_signature) -> None:
+def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_public_key: str, kyber_signature: str, d5_public_key, d5_signature, pfs_type: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
   
@@ -41,7 +41,8 @@ def ephemeral_keys_processor(user_id: str, recipient_id: str, kyber_public_key: 
     payload = {
         "sender": user_id,
         "kyber_public_key": kyber_public_key,
-        "kyber_signature": kyber_signature
+        "kyber_signature": kyber_signature,
+        "pfs_type": pfs_type
     } 
 
     if d5_public_key and d5_signature:

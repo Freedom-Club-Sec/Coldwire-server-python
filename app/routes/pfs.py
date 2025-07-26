@@ -24,6 +24,7 @@ class SendKeysPFS(BaseModel):
     d5_public_key   : Optional[str] = None
     d5_signature    : Optional[str]  = None
     recipient       : str
+    pfs_type        : str
 
 
 def verify_jwt_token(creds: HTTPAuthorizationCredentials = Depends(auth_scheme)):
@@ -53,8 +54,13 @@ async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(v
     d5_public_key    = payload.d5_public_key
     d5_signature     = payload.d5_signature
     recipient        = payload.recipient
+    pfs_type         = payload.pfs_type
 
     user_id = user["id"]
+
+    if not (pfs_type in ["rotate", "init"]):
+        raise HTTPException(status_code=400, detail="Malformed pfs_type")
+
 
     # Kyber1024 public-key size is always exactly 1568 bytes according to spec
     if (not valid_b64(kyber_public_key)) or len(b64decode(kyber_public_key)) != 1568:
@@ -77,7 +83,7 @@ async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(v
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
     try:
-        await asyncio.to_thread(ephemeral_keys_processor, user_id, recipient, kyber_public_key, kyber_signature, d5_public_key, d5_signature)
+        await asyncio.to_thread(ephemeral_keys_processor, user_id, recipient, kyber_public_key, kyber_signature, d5_public_key, d5_signature, pfs_type)
     except ValueError as e:
         return {"status": "failure", "error": e}
 
