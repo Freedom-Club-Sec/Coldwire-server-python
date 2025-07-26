@@ -32,18 +32,6 @@ class SMP_Failure(BaseModel):
     recipient: str
 
 
-
-@router.get("/get_smp/longpoll")
-async def get_smp_longpoll(response: Response, user=Depends(verify_jwt_token)):
-    for _ in range(30): 
-        messages = await asyncio.to_thread(check_new_smp_messages, user["id"])
-        if messages:
-            return JSONResponse(content={"messages": messages})
-        await asyncio.sleep(1)
-
-    return JSONResponse(content={"messages": []})
-
-
 @router.post("/smp/initiate")
 async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(verify_jwt_token)):
     question  = payload.question
