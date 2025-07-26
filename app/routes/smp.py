@@ -6,15 +6,10 @@ from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
 from app.logic.smp import check_new_smp_messages, initiate_new_smp, smp_step_2_processor, smp_step_3_processor, smp_failure_processor
 from app.utils.helper_utils import valid_b64, valid_hex
+from app.utils.jwt import verify_jwt_token
 import asyncio
-import jwt
-import os
 
 router = APIRouter()
-
-auth_scheme = HTTPBearer()
-
-JWT_SECRET = os.environ.get("JWT_SECRET")
 
 class InitiateSMP(BaseModel):
     question: str
@@ -36,13 +31,6 @@ class SMP_3(BaseModel):
 class SMP_Failure(BaseModel):
     recipient: str
 
-
-def verify_jwt_token(creds: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-    try:
-        payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=["HS512"])
-        return payload 
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @router.get("/get_smp/longpoll")

@@ -7,16 +7,11 @@ from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
 from app.logic.pfs import check_new_pfs_messages, ephemeral_keys_processor
 from app.utils.helper_utils import valid_b64
+from app.utils.jwt import verify_jwt_token
 import asyncio
-import json
-import jwt
-import os
 
 router = APIRouter()
 
-auth_scheme = HTTPBearer()
-
-JWT_SECRET = os.environ.get("JWT_SECRET")
 
 class SendKeysPFS(BaseModel):
     kyber_publickey_hashchain: str
@@ -25,25 +20,6 @@ class SendKeysPFS(BaseModel):
     d5_signature             : Optional[str]  = None
     recipient                : str
     pfs_type                 : str
-
-
-def verify_jwt_token(creds: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-    try:
-        payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=["HS512"])
-        return payload 
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
-@router.get("/pfs/longpoll")
-async def get_pfs_longpoll(response: Response, user=Depends(verify_jwt_token)):
-    for _ in range(30): 
-        messages = await asyncio.to_thread(check_new_pfs_messages, user["id"])
-        if messages:
-            return JSONResponse(content={"messages": messages})
-        await asyncio.sleep(1)
-
-    return JSONResponse(content={"messages": []})
 
 
 
