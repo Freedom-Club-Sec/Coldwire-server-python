@@ -37,7 +37,7 @@ def delete_old_smps(target_id: str, sender_id: str) -> None:
 # as the SMP implementation is a very important part of Coldwire's security.
 
 
-def initiate_new_smp(user_id: str, recipient_id: str, question: str, nonce: str) -> None:
+def initiate_new_smp(user_id: str, recipient_id: str, question: str, nonce: str, public_key: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
   
@@ -51,11 +51,12 @@ def initiate_new_smp(user_id: str, recipient_id: str, question: str, nonce: str)
         "step": 1,
         "question": question,
         "nonce": nonce,
+        "public_key": public_key,
         "data_type": "smp"
     }))
 
 
-def smp_step_2_processor(user_id: str, recipient_id: str, proof: str, nonce: str) -> None:
+def smp_step_2_processor(user_id: str, recipient_id: str, proof: str, nonce: str, public_key: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
   
@@ -69,6 +70,7 @@ def smp_step_2_processor(user_id: str, recipient_id: str, proof: str, nonce: str
         "step": 2,
         "proof": proof,
         "nonce": nonce,
+        "public_key": public_key,
         "data_type": "smp"
     }))
 

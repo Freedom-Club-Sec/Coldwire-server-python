@@ -17,6 +17,11 @@ router = APIRouter()
 # We prioritize SMP messages over PFS messages, and PFS messages over new messages
 # This is to prevent any race conditions. No PFS messages are supposed to exist before SMP messages
 # and no new message should exist before a new PFS message
+#
+# TODO: Maybe we need to somehow move some ephemeral key logic to new messages to prevent race conditions?
+# for instance, if Alice send Bob ephemeral keys, and then new messages, then new ephemeral keys, 
+# Bob would process all the ephemeral keys first, and wont be able to decrypt messages
+
 data_sources = [
     check_new_smp_messages,
     check_new_pfs_messages,

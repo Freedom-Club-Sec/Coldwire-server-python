@@ -14,12 +14,14 @@ router = APIRouter()
 class InitiateSMP(BaseModel):
     question: str
     nonce: str
+    public_key: str
     recipient: str
 
 
 class SMP_2(BaseModel):
     proof: str
     nonce: str
+    public_key: str
     recipient: str
 
 
@@ -34,9 +36,10 @@ class SMP_Failure(BaseModel):
 
 @router.post("/smp/initiate")
 async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(verify_jwt_token)):
-    question  = payload.question
-    nonce     = payload.nonce
-    recipient = payload.recipient
+    question   = payload.question
+    nonce      = payload.nonce
+    public_key = payload.public_key
+    recipient  = payload.recipient
 
     user_id = user["id"]
 
@@ -46,8 +49,13 @@ async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(ve
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
+    # Dilithium5 public-key size is always 2592 bytes
+    if (not valid_b64(public_key)) or len(b64decode(public_key)) != 2592:
+        raise HTTPException(status_code=400, detail="Malformed public_key")
+
+
     try:
-        await asyncio.to_thread(initiate_new_smp, user_id, recipient, question, nonce)
+        await asyncio.to_thread(initiate_new_smp, user_id, recipient, question, nonce, public_key)
     except ValueError as e:
         return {"status": "failure", "error": e}
 
@@ -59,6 +67,7 @@ async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(ve
 async def smp_step_2(payload: SMP_2, response: Response, user=Depends(verify_jwt_token)):
     proof     = payload.proof
     nonce     = payload.nonce
+    public_key = payload.public_key
     recipient = payload.recipient
 
     user_id = user["id"]
@@ -74,8 +83,14 @@ async def smp_step_2(payload: SMP_2, response: Response, user=Depends(verify_jwt
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
+
+    # Dilithium5 public-key size is always 2592 bytes
+    if (not valid_b64(public_key)) or len(b64decode(public_key)) != 2592:
+        raise HTTPException(status_code=400, detail="Malformed public_key")
+
+
     try:
-        await asyncio.to_thread(smp_step_2_processor, user_id, recipient, proof, nonce)
+        await asyncio.to_thread(smp_step_2_processor, user_id, recipient, proof, nonce, public_key)
     except ValueError as e:
         return {"status": "failure", "error": e}
 

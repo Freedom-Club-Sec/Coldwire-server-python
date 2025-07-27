@@ -4,7 +4,7 @@ from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
 from app.utils.helper_utils import valid_b64
-from app.logic.get_user import get_public_key
+from app.logic.get_user import check_user
 import asyncio
 
 router = APIRouter()
@@ -21,10 +21,8 @@ async def get_user(response: Response, params: GetUserParams = Depends()):
     if (not user_id.isdigit()) or len(user_id) != 16:
         raise HTTPException(status_code=400, detail="Invalid user_id")
 
-    public_key = get_public_key(user_id)
-    if not public_key:
+    user_exists = check_user(user_id)
+    if not user_exists:
         return {"status": "failure", "error": "User ID does not exist"}
 
-    return {"status": "success", "public_key": public_key}
-
-
+    return {"status": "success"}
