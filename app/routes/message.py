@@ -11,29 +11,42 @@ import asyncio
 
 router = APIRouter()
 
-class MessagePayload(BaseModel):
-    json_payload     : str
-    payload_signature: str 
+class PadsPayload(BaseModel):
+    otp_hashchain_ciphertext: str
+    otp_hashchain_signature : str 
+    recipient               : str
+
+class SendMessagePayload(BaseModel):
+    message_encrypted: str
     recipient        : str
 
-
 @router.post("/messages/send_pads")
-async def message_send_pads(payload: MessagePayload, response: Response, user=Depends(verify_jwt_token)):
-    json_payload      = payload.json_payload
-    payload_signature = payload.payload_signature
-    recipient         = payload.recipient
+async def message_send_pads(payload: PadsPayload, response: Response, user=Depends(verify_jwt_token)):
+    otp_hashchain_ciphertext = payload.otp_hashchain_ciphertext
+    otp_hashchain_signature  = payload.otp_hashchain_signature
+    recipient                = payload.recipient
 
     user_id = user["id"]
+ 
+
+    # Kyber1024 ciphertext is always 1568, and since our default One-Time-Pad size is 10 kilobytes
+    # We can be confident that the decoded ciphertext_blob size must match 501760 bytes
+    # 
+    # 10272 / 32 = 320
+    # 320 x 1568 = 501760
+
+    if (not valid_b64(otp_hashchain_ciphertext)) or len(b64decode(otp_hashchain_ciphertext)) != 501760:
+        raise HTTPException(status_code=400, detail="Malformed otp_hashchain_ciphertext")
 
     # Dilithium5 signature is always 4595
-    if (not valid_b64(payload_signature)) or len(b64decode(payload_signature)) != 4595:
-        raise HTTPException(status_code=400, detail="Malformed payload_signature")
+    if (not valid_b64(otp_hashchain_signature)) or len(b64decode(otp_hashchain_signature)) != 4595:
+        raise HTTPException(status_code=400, detail="Malformed otp_hashchain_signature")
 
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
     try:
-        await asyncio.to_thread(otp_batch_processor, user_id, recipient, json_payload, payload_signature)
+        await asyncio.to_thread(otp_batch_processor, user_id, recipient, otp_hashchain_ciphertext, otp_hashchain_signature)
     except ValueError as e:
          raise JSONResponse(status_code=400, content={"status": "failure", "error": e})
 
@@ -41,22 +54,17 @@ async def message_send_pads(payload: MessagePayload, response: Response, user=De
 
 
 @router.post("/messages/send_message")
-async def message_send_message(payload: MessagePayload, response: Response, user=Depends(verify_jwt_token)):
-    json_payload      = payload.json_payload
-    payload_signature = payload.payload_signature
+async def message_send_message(payload: SendMessagePayload, response: Response, user=Depends(verify_jwt_token)):
+    message_encrypted = payload.message_encrypted
     recipient         = payload.recipient
 
     user_id = user["id"]
-
-    # Dilithium5 signature is always 4595
-    if (not valid_b64(payload_signature)) or len(b64decode(payload_signature)) != 4595:
-        raise HTTPException(status_code=400, detail="Malformed payload_signature")
 
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
     try:
-        await asyncio.to_thread(otp_message_processor, user_id, recipient, json_payload, payload_signature)
+        await asyncio.to_thread(otp_message_processor, user_id, recipient, message_encrypted)
     except ValueError as e:
          raise JSONResponse(status_code=400, content={"status": "failure", "error": e})
 
