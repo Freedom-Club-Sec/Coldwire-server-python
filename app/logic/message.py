@@ -7,18 +7,9 @@ import logging
 
 redis_client = get_redis()
 
-def check_new_messages(user_id: str) -> list:
-    key = f"messages:{user_id}"
-    messages = get_redis_list(redis_client, key)
-    redis_client.delete(key)
-    return messages
-
 def otp_batch_processor(user_id: str, recipient_id: str, otp_hashchain_ciphertext: str, otp_hashchain_signature: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
-
-
-    key = f"messages:{recipient_id}"
 
     payload = {
         "sender": user_id,
@@ -28,14 +19,12 @@ def otp_batch_processor(user_id: str, recipient_id: str, otp_hashchain_ciphertex
         "data_type": "message"
     } 
 
-    redis_client.rpush(key, json.dumps(payload))
+    redis_client.rpush(recipient_id, json.dumps(payload))
 
 
 def otp_message_processor(user_id: str, recipient_id: str, message_encrypted: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
-
-    key = f"messages:{recipient_id}"
 
     payload = {
         "sender": user_id,
@@ -44,6 +33,6 @@ def otp_message_processor(user_id: str, recipient_id: str, message_encrypted: st
         "data_type": "message"
     } 
 
-    redis_client.rpush(key, json.dumps(payload))
+    redis_client.rpush(recipient_id, json.dumps(payload))
 
 

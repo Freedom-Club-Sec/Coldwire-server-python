@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
-from app.logic.smp import check_new_smp_messages, initiate_new_smp, smp_step_2_processor, smp_step_3_processor, smp_failure_processor
+from app.logic.smp import initiate_new_smp, smp_step_2_processor, smp_step_3_processor, smp_failure_processor
 from app.utils.helper_utils import valid_b64, valid_hex
 from app.utils.jwt import verify_jwt_token
 import asyncio
