@@ -29,13 +29,17 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     user_id = user["id"]
  
 
-    # Kyber1024 ciphertext is always 1568, and since our default One-Time-Pad size is 11 kilobytes
+    # Kyber1024 ciphertext is always 1568 bytes, and McEliece8192128 is always 240 bytes,
+    # and since our default One-Time-Pad size is 11 kilobytes
     # We can be confident that the decoded ciphertext_blob size must match 551936 bytes
     # 
     # 11264 / 32 = 352
     # 352 x 1568 = 551936
+    # 352 x 208 = 73216
+    # size to match is 551936 + 73216 = 625152
 
-    if (not valid_b64(otp_hashchain_ciphertext)) or len(b64decode(otp_hashchain_ciphertext)) != 551936:
+    print(len(b64decode(otp_hashchain_ciphertext)))
+    if (not valid_b64(otp_hashchain_ciphertext)) or len(b64decode(otp_hashchain_ciphertext)) != 625152:
         raise HTTPException(status_code=400, detail="Malformed otp_hashchain_ciphertext")
 
     # Dilithium5 signature is always 4595

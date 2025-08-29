@@ -24,9 +24,9 @@ class SendKeysPFS(BaseModel):
 @router.post("/pfs/send_keys")
 async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(verify_jwt_token)):
     publickeys_hashchain = payload.publickeys_hashchain
-    hashchain_signature = payload.hashchain_signature
-    pfs_type            = payload.pfs_type
-    recipient           = payload.recipient
+    hashchain_signature  = payload.hashchain_signature
+    pfs_type             = payload.pfs_type
+    recipient            = payload.recipient
 
     user_id = user["id"]
 
@@ -37,13 +37,15 @@ async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(v
 
     # ML-KEM-1024 public-key size is always exactly 1568 bytes according to spec
     # And 64 bytes for our SHA3-512 hash-chain
-    if pfs_type == "partial" and len(b64decode(publickeys_hashchain)) != 1568 + 64:
-        raise HTTPException(status_code=400, detail="Malformed public_keys")
+    if pfs_type == "partial":
+        if len(b64decode(publickeys_hashchain)) != 1568 + 64:
+            raise HTTPException(status_code=400, detail="Malformed public_keys")
     
     # Classic McEliece8192128 public-key size is always exactly 1357824 bytes according to spec
     # And 64 bytes for our SHA3-512 hash-chain
-    elif pfs_type == "full" and len(b64decode(publickeys_hashchain)) != 1357824 + 1568 + 64:
-        raise HTTPException(status_code=400, detail="Malformed public_keys")
+    elif pfs_type == "full":
+        if len(b64decode(publickeys_hashchain)) != 1357824 + 1568 + 64:
+            raise HTTPException(status_code=400, detail="Malformed public_keys")
 
     else:
         raise HTTPException(status_code=400, detail="Malformed pfs_type")
@@ -51,7 +53,7 @@ async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(v
 
     # ML-DSA-87 signature is always 4595
     # NOTE: Is it though ?? NIST did change it and liboqs followed.. 
-    if (not valid_b64(kyber_hashchain_signature)) or len(b64decode(kyber_hashchain_signature)) != 4595:
+    if (not valid_b64(hashchain_signature)) or len(b64decode(hashchain_signature)) != 4595:
         raise HTTPException(status_code=400, detail="Malformed signature")
 
 
