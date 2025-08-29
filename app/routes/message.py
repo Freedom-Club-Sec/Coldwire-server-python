@@ -29,7 +29,7 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     user_id = user["id"]
  
 
-    # Kyber1024 ciphertext is always 1568 bytes, and McEliece8192128 is always 240 bytes,
+    # Kyber1024 ciphertext is always 1568 bytes, and McEliece8192128 is always 208 bytes,
     # and since our default One-Time-Pad size is 11 kilobytes
     # We can be confident that the decoded ciphertext_blob size must match 551936 bytes
     # 
