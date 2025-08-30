@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request, Response, Depends
-from fastapi.responses import JSONResponse
 from app.logic.data import check_new_data
 from app.utils.jwt import verify_jwt_token
 import asyncio
@@ -18,8 +17,8 @@ async def get_data_longpoll(request: Request, response: Response, user=Depends(v
         messages = await asyncio.to_thread(check_new_data, user["id"])
 
         if messages:
-            return JSONResponse(content={"messages": messages})
+            return {"messages": messages}
 
         await asyncio.sleep(1)
 
-    return JSONResponse(content={"messages": []})
+    return {"messages": []}

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Response, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
@@ -52,7 +51,7 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     try:
         await asyncio.to_thread(otp_batch_processor, user_id, recipient, otp_hashchain_ciphertext, otp_hashchain_signature)
     except ValueError as e:
-         raise JSONResponse(status_code=400, content={"status": "failure", "error": e})
+        raise HTTPException(status_code=400, detail={"status": "failure", "error": e})
 
     return {"status": "success"}
 
@@ -74,7 +73,7 @@ async def message_send_message(payload: SendMessagePayload, response: Response, 
     try:
         await asyncio.to_thread(otp_message_processor, user_id, recipient, message_encrypted)
     except ValueError as e:
-         raise JSONResponse(status_code=400, content={"status": "failure", "error": e})
+        raise HTTPException(status_code=400, detail={"status": "failure", "error": e})
 
     return {"status": "success"}
 

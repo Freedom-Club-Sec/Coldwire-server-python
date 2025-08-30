@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Request, HTTPException, Response, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, validator
 from base64 import b64encode, b64decode
 from app.core.crypto import verify_signature
 from app.logic.smp import initiate_new_smp, smp_step_2_processor, smp_step_3_processor, smp_failure_processor
 from app.utils.helper_utils import valid_b64, valid_hex
 from app.utils.jwt import verify_jwt_token
+from app.core.constants import (
+    SMP_NONCE_LENGTH
+    SMP_PROOF_LENGTH,
+    SMP_QUESTION_MAX_LEN,
+    ML_DSA_87_PK_LEN
+)
 import asyncio
 
 router = APIRouter()
@@ -43,14 +48,13 @@ async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(ve
 
     user_id = user["id"]
 
-    if (not valid_b64(nonce)) or len(b64decode(nonce)) != 32:
+    if (not valid_b64(nonce)) or len(b64decode(nonce)) != SMP_NONCE_LENGTH:
         raise HTTPException(status_code=400, detail="Malformed nonce")
 
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
-    # Dilithium5 public-key size is always 2592 bytes
-    if (not valid_b64(public_key)) or len(b64decode(public_key)) != 2592:
+    if (not valid_b64(public_key)) or len(b64decode(public_key)) != ML_DSA_87_PK_LEN:
         raise HTTPException(status_code=400, detail="Malformed public_key")
 
 
@@ -65,27 +69,26 @@ async def smp_initiate(payload: InitiateSMP, response: Response, user=Depends(ve
 
 @router.post("/smp/step_2")
 async def smp_step_2(payload: SMP_2, response: Response, user=Depends(verify_jwt_token)):
-    proof     = payload.proof
-    nonce     = payload.nonce
+    proof      = payload.proof
+    nonce      = payload.nonce
     public_key = payload.public_key
-    recipient = payload.recipient
+    recipient  = payload.recipient
 
     user_id = user["id"]
 
-    if (not valid_b64(nonce)) or len(b64decode(nonce)) != 32:
+    if (not valid_b64(nonce)) or len(b64decode(nonce)) != SMP_NONCE_LENGTH:
         raise HTTPException(status_code=400, detail="Malformed nonce")
   
 
     # HMAC SHA512 is fixed-size to 64 bytes
-    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != 64:
+    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != SMP_PROOF_LENGTH:
         raise HTTPException(status_code=400, detail="Malformed proof")
   
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
 
-    # Dilithium5 public-key size is always 2592 bytes
-    if (not valid_b64(public_key)) or len(b64decode(public_key)) != 2592:
+    if (not valid_b64(public_key)) or len(b64decode(public_key)) != ML_DSA_87_PK_LEN:
         raise HTTPException(status_code=400, detail="Malformed public_key")
 
 
@@ -105,8 +108,7 @@ async def smp_step_3(payload: SMP_3, response: Response, user=Depends(verify_jwt
 
     user_id = user["id"]
 
-    # HMAC SHA512 is fixed-size to 64 bytes
-    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != 64:
+    if (not valid_hex(proof)) or len(bytes.fromhex(proof)) != SMP_PROOF_LENGTH:
         raise HTTPException(status_code=400, detail="Malformed proof")
   
     if (not recipient.isdigit()) or len(recipient) != 16:

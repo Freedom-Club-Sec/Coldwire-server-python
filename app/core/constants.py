@@ -7,11 +7,17 @@ LONGPOLL_MIN  = 5
 LONGPOLL_MAX  = 30  
 
 # crypto parameters (bytes)
-AES_GCM_NONCE_LEN = 12
+CHALLENGE_LEN      = 64
+
+AES_GCM_NONCE_LEN  = 12
 
 OTP_PAD_SIZE       = 11264
 OTP_PADDING_LENGTH = 2
 OTP_PADDING_LIMIT  = 1024
+
+SMP_NONCE_LENGTH     = 64
+SMP_PROOF_LENGTH     = 64
+SMP_QUESTION_MAX_LEN = 500
 
 # NIST-specified key sizes (bytes) and metadata
 ML_KEM_1024_NAME   = "ML-KEM-1024"

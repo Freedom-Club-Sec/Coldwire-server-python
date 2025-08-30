@@ -3,6 +3,9 @@ from app.db.redis import get_redis, get_redis_list
 from app.utils.helper_utils import generate_user_id
 from app.utils.jwt import create_jwt_token
 from base64 import b64encode
+from app.core.constants import (
+    CHALLENGE_LEN
+)
 import secrets
 import sqlite3
 import json
@@ -51,7 +54,7 @@ def handle_authentication(public_key: bytes, user_id: str = None) -> (str, str):
 
 
 def set_verification_challenge(user_id: str, public_key: str) -> str:
-    challenge = b64encode(secrets.token_bytes(32)).decode()
+    challenge = b64encode(secrets.token_bytes(CHALLENGE_LEN)).decode()
     redis_client.set(f"challenges:{challenge}", json.dumps([user_id, public_key]))
     return challenge
 

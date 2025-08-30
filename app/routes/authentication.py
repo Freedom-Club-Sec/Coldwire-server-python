@@ -6,7 +6,8 @@ from app.utils.helper_utils import valid_b64
 from app.logic.authentication import handle_authentication, check_id_public_key, set_verification_challenge, get_challenge_data
 from app.core.constants import (
     ML_DSA_87_NAME,
-    ML_DSA_87_PK_LEN
+    ML_DSA_87_PK_LEN,
+    ML_DSA_87_SIGN_LEN
 )
 import asyncio
 
@@ -71,6 +72,8 @@ async def authenticate_verify(payload: VerifyPayload):
 
     try:
         signature = b64decode(signature)
+        if len(signature) != ML_DSA_87_SIGN_LEN:
+            raise Exception()
     except Exception:
         raise HTTPException(status_code=400, detail={"status": "failure", "error": "Invalid signature base64 encoding"})
     
