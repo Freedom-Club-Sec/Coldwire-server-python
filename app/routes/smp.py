@@ -7,7 +7,7 @@ from app.logic.smp import initiate_new_smp, smp_step_2_processor, smp_step_3_pro
 from app.utils.helper_utils import valid_b64, valid_hex
 from app.utils.jwt import verify_jwt_token
 from app.core.constants import (
-    SMP_NONCE_LENGTH
+    SMP_NONCE_LENGTH,
     SMP_PROOF_LENGTH,
     SMP_QUESTION_MAX_LEN,
     ML_DSA_87_PK_LEN
