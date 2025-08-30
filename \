@@ -35,7 +35,7 @@ async def authenticate_init(payload: InitPayload, response: Response):
 
     
     # Check if the user provided a user_id and if yes check if its valid format
-    if user_id and ( (not user_id.isdigit()) or len(user_id) != 16):
+    if len(user_id) != 0 and ( (not user_id.isdigit()) or len(user_id) != 16):
         raise HTTPException(status_code=400, detail="Malformed user_id")
 
     try:
@@ -52,11 +52,10 @@ async def authenticate_verify(payload: VerifyPayload):
     signature  = payload.signature
     challenge  = payload.challenge
 
-    if (not valid_b64(signature)) or (not valid_b64(challenge)):
+    if (not valid_b64(signature) or (not valid_b64(challenge)):
         raise HTTPException(status_code=400, detail="Invalid base64 for signature or challenge")
     
     try:
-        signature = b64decode(signature)
         if len(signature) != ML_DSA_87_SIGN_LEN:
             raise Exception()
     except Exception:
@@ -78,12 +77,12 @@ async def authenticate_verify(payload: VerifyPayload):
             raise HTTPException(status_code=400, detail="Invalid user_id or public_key")
 
     try:
-        is_valid_signature = await asyncio.to_thread(verify_signature, ML_DSA_87_NAME, b64decode(challenge), signature, public_key)
+        is_valid_signature = await asyncio.to_thread(verify_signature, ML_DSA_87_NAME, b64decode(challenge), b64decode(signature), public_key)
         if not is_valid_signature:
             raise Exception()
 
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid signature")
+        raise HTTPException(status_code=400, detail={"status": "failure", "error": "Invalid signature"})
 
 
     user_id, user_token = await asyncio.to_thread(handle_authentication, public_key, user_id)
