@@ -6,6 +6,13 @@ from app.core.crypto import verify_signature
 from app.logic.message import otp_batch_processor, otp_message_processor
 from app.utils.helper_utils import valid_b64
 from app.utils.jwt import verify_jwt_token
+from app.core.constants import (
+    ML_DSA_87_SIGN_LEN,
+    ML_KEM_1024_CT_LEN,
+    CLASSIC_MCELIECE_8_F_CT_LEN,
+    KEYS_HASH_CHAIN_LEN,
+    OTP_PAD_SIZE 
+)
 import asyncio
 
 router = APIRouter()
@@ -28,8 +35,8 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     user_id = user["id"]
  
 
-    # Kyber1024 ciphertext is always 1568 bytes, and McEliece8192128 is always 208 bytes,
-    # and since our default One-Time-Pad size is 11 kilobytes
+    # ML-KEM-1024 ciphertext is always 1568 bytes, and Classic McEliece8192128 is always 208 bytes,
+    # and since our default One-Time-Pad size is around 11 kilobytes (11264)
     # We can be confident that the decoded ciphertext_blob size must match 551936 bytes
     # 
     # 11264 / 32 = 352
@@ -38,11 +45,11 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     # size to match is 551936 + 73216 = 625152
 
     print(len(b64decode(otp_hashchain_ciphertext)))
-    if (not valid_b64(otp_hashchain_ciphertext)) or len(b64decode(otp_hashchain_ciphertext)) != 625152:
+    if (not valid_b64(otp_hashchain_ciphertext)) or len(b64decode(otp_hashchain_ciphertext)) != (OTP_PAD_SIZE // 32) * (ML_KEM_1024_CT_LEN + CLASSIC_MCELIECE_8_F_CT_LEN):   
         raise HTTPException(status_code=400, detail="Malformed otp_hashchain_ciphertext")
 
     # Dilithium5 signature is always 4595
-    if (not valid_b64(otp_hashchain_signature)) or len(b64decode(otp_hashchain_signature)) != 4595:
+    if (not valid_b64(otp_hashchain_signature)) or len(b64decode(otp_hashchain_signature)) != ML_DSA_87_SIGN_LEN:
         raise HTTPException(status_code=400, detail="Malformed otp_hashchain_signature")
 
     if (not recipient.isdigit()) or len(recipient) != 16:
@@ -51,7 +58,7 @@ async def message_send_pads(payload: PadsPayload, response: Response, user=Depen
     try:
         await asyncio.to_thread(otp_batch_processor, user_id, recipient, otp_hashchain_ciphertext, otp_hashchain_signature)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail={"status": "failure", "error": e})
+        raise HTTPException(status_code=400, detail=e)
 
     return {"status": "success"}
 
@@ -73,7 +80,7 @@ async def message_send_message(payload: SendMessagePayload, response: Response, 
     try:
         await asyncio.to_thread(otp_message_processor, user_id, recipient, message_encrypted)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail={"status": "failure", "error": e})
+        raise HTTPException(status_code=400, detail=e)
 
     return {"status": "success"}
 

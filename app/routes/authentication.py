@@ -41,7 +41,7 @@ async def authenticate_init(payload: InitPayload, response: Response):
     try:
         challenge = set_verification_challenge(user_id, public_key)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail={"status": "failure", "error": e})
+        raise HTTPException(status_code=400, detail=e)
 
     return {"challenge": challenge}
 

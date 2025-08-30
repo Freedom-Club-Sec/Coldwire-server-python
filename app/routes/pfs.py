@@ -7,6 +7,12 @@ from app.core.crypto import verify_signature
 from app.logic.pfs import ephemeral_keys_processor
 from app.utils.helper_utils import valid_b64
 from app.utils.jwt import verify_jwt_token
+from app.core.constants import (
+    ML_KEM_1024_PK_LEN,
+    ML_DSA_87_SIGN_LEN,
+    CLASSIC_MCELIECE_8_F_PK_LEN,
+    KEYS_HASH_CHAIN_LEN
+)
 import asyncio
 
 router = APIRouter()
@@ -37,22 +43,20 @@ async def pfs_send_keys(payload: SendKeysPFS, response: Response, user=Depends(v
     # ML-KEM-1024 public-key size is always exactly 1568 bytes according to spec
     # And 64 bytes for our SHA3-512 hash-chain
     if pfs_type == "partial":
-        if len(b64decode(publickeys_hashchain)) != 1568 + 64:
+        if len(b64decode(publickeys_hashchain)) != ML_KEM_1024_PK_LEN + KEYS_HASH_CHAIN_LEN:
             raise HTTPException(status_code=400, detail="Malformed public_keys")
     
     # Classic McEliece8192128 public-key size is always exactly 1357824 bytes according to spec
     # And 64 bytes for our SHA3-512 hash-chain
     elif pfs_type == "full":
-        if len(b64decode(publickeys_hashchain)) != 1357824 + 1568 + 64:
+        if len(b64decode(publickeys_hashchain)) != CLASSIC_MCELIECE_8_F_PK_LEN + ML_KEM_1024_PK_LEN + KEYS_HASH_CHAIN_LEN:
             raise HTTPException(status_code=400, detail="Malformed public_keys")
 
     else:
         raise HTTPException(status_code=400, detail="Malformed pfs_type")
 
 
-    # ML-DSA-87 signature is always 4595
-    # NOTE: Is it though ?? NIST did change it and liboqs followed.. 
-    if (not valid_b64(hashchain_signature)) or len(b64decode(hashchain_signature)) != 4595:
+    if (not valid_b64(hashchain_signature)) or len(b64decode(hashchain_signature)) != ML_DSA_87_SIGN_LEN:
         raise HTTPException(status_code=400, detail="Malformed signature")
 
 

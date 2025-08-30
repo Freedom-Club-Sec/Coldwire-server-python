@@ -19,6 +19,8 @@ SMP_NONCE_LENGTH     = 64
 SMP_PROOF_LENGTH     = 64
 SMP_QUESTION_MAX_LEN = 500
 
+KEYS_HASH_CHAIN_LEN  = 64
+
 # NIST-specified key sizes (bytes) and metadata
 ML_KEM_1024_NAME   = "ML-KEM-1024"
 ML_KEM_1024_SK_LEN = 3168
