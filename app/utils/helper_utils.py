@@ -4,6 +4,9 @@ import string
 
 
 def valid_b64(s: str) -> bool:
+    if not s.strip():
+        return False
+
     try:
         b64decode(s, validate=True)
         return True

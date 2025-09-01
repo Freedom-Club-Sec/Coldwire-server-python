@@ -68,8 +68,6 @@ async def smp_step(payload: SMP_Step, response: Response, user=Depends(verify_jw
     if (not recipient.isdigit()) or len(recipient) != 16:
         raise HTTPException(status_code=400, detail="Invalid recipient")
 
-
-
     
     if (not valid_b64(ciphertext_blob)):
         raise HTTPException(status_code=400, detail="Malformed ciphertext_blob")
