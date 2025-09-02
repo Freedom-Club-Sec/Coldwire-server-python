@@ -7,7 +7,7 @@ import json
 redis_client = get_redis()
 
 
-def ephemeral_keys_processor(user_id: str, recipient_id: str, publickeys_hashchain: str, hashchain_signature: str, pfs_type: str) -> None:
+def ephemeral_keys_processor(user_id: str, recipient_id: str, ciphertext_blob: str) -> None:
     if not check_user_exists(recipient_id):
         raise ValueError("Recipient_id does not exist")
   
@@ -17,10 +17,8 @@ def ephemeral_keys_processor(user_id: str, recipient_id: str, publickeys_hashcha
 
     payload = {
         "sender": user_id,
-        "publickeys_hashchain": publickeys_hashchain,
-        "hashchain_signature": hashchain_signature,
+        "ciphertext_blob": ciphertext_blob,
         "data_type": "pfs",
-        "pfs_type": pfs_type
     } 
 
     redis_client.rpush(recipient_id, json.dumps(payload))
