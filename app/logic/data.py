@@ -41,21 +41,3 @@ def data_processor(user_id: str, recipient_id: str, blob: bytes) -> None:
 
     redis_client.rpush(recipient_id, payload)
 
-
-"""
-def delete_old_data(target_id: str, data_type: str, sender_id: str) -> None:
-    all_msgs = redis_client.lrange(target_id, 0, -1)
-    keep = []
-
-    for raw in all_msgs:
-        msg = json.loads(raw)
-        if (msg.get("sender") != sender_id) and msg.get("data_type") != data_type:
-            keep.append(json.dumps(msg))
-
-    pipe = redis_client.pipeline()
-    pipe.delete(target_id)
-    if keep:
-        pipe.rpush(target_id, *keep)
-    pipe.execute()
-
-"""
