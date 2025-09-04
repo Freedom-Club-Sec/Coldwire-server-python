@@ -46,9 +46,8 @@ def handle_authentication(public_key: bytes, user_id: str = None) -> (str, str):
             )
 
             conn.commit()
-            print(f"User ({user_id}) inserted successfully.")
         except sqlite3.IntegrityError:
-            print(f"User ({user_id}) authenticated successfully.")
+            pass
 
         return (user_id, user_token)
 
