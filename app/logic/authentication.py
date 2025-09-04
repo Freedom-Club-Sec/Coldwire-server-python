@@ -1,5 +1,5 @@
 from app.db.sqlite import get_db
-from app.db.redis import get_redis, get_redis_list
+from app.db.redis import get_redis
 from app.utils.helper_utils import generate_user_id
 from app.utils.jwt import create_jwt_token
 from base64 import b64encode

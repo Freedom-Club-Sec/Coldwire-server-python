@@ -2,6 +2,10 @@
 APP_NAME      = "Coldwire Python Server"
 APP_VERSION   = "0.1"
 
+# Coldwire protocol misc (bytes)
+COLDWIRE_DATA_SEP   = b"\0"
+COLDWIRE_LEN_OFFSET = 3
+
 # network defaults (seconds)
 LONGPOLL_MIN  = 5
 LONGPOLL_MAX  = 30  
