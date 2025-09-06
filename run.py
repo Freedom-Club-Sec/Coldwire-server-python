@@ -11,9 +11,8 @@ def main():
 
     check_jwt_exists()
     init_db()
-
-#    if config["federation_enabled"] and not config["YOUR_DOMAIN_OR_IP"]:
-#        sys.exit("You must add your domain name (or IP address) in app/config.json in order to allow federation support.")
+    if config["federation_enabled"] and not config["YOUR_DOMAIN_OR_IP"]:
+        sys.exit("You must add your domain name (or IP address) in app/config.json in order to allow federation support.")
 
    
     parser = argparse.ArgumentParser(description="Run the Coldwire server")
