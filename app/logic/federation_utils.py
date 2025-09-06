@@ -24,7 +24,10 @@ import json
 redis_client = get_redis()
 
 def fetch_and_save_server_info(url: str) -> bytes:
-    response = json.loads(http_request(f"http://{url}/federation/info", "GET").decode())
+    try:
+        response = json.loads(http_request(f"https://{url}/federation/info", "GET").decode())
+    except Exception:
+        response = json.loads(http_request(f"http://{url}/federation/info", "GET").decode())
 
     public_key   = b64decode(response["public_key"])
     signature    = b64decode(response["signature"])
@@ -144,10 +147,21 @@ def send_to_server(url: str, sender: str, recipient: str, blob: bytes):
 
     signature = create_signature(ML_DSA_87_NAME, url.encode("utf-8") + recipient.encode("utf-8") + sender.encode("utf-8") + blob, private_key)
 
-    http_request(f"http://{url}/federation/send", "POST", metadata = {
-                "recipient": recipient,
-                "sender": sender,
-                "url": config["YOUR_DOMAIN_OR_IP"]
-            },
-            blob = signature + blob
-        )
+    try:
+        http_request(f"https://{url}/federation/send", "POST", metadata = {
+                    "recipient": recipient,
+                    "sender": sender,
+                    "url": config["YOUR_DOMAIN_OR_IP"]
+                },
+                blob = signature + blob
+            )
+    except Exception:
+        http_request(f"http://{url}/federation/send", "POST", metadata = {
+                    "recipient": recipient,
+                    "sender": sender,
+                    "url": config["YOUR_DOMAIN_OR_IP"]
+                },
+                blob = signature + blob
+            )
+
+

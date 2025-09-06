@@ -1,10 +1,7 @@
 {
-    "YOUR_DOMAIN_OR_IP": "127.0.0.1:8000",
+    "YOUR_DOMAIN_OR_IP": "",
     "federation_enabled": true,
-    "BLACKLISTED_IP_NETWORKS": [],
-    "BLACKLISTED_DOMAINS": [],
-
-    "PROD_BLACKLISTED_IP_NETWORKS": [
+    "BLACKLISTED_IP_NETWORKS": [
         "127.0.0.0/8",
         "0.0.0.0/8",
         "10.0.0.0/8",
@@ -14,7 +11,7 @@
         "::1/128",
         "fc00::/7"
     ],
-    "PROD_BLACKLISTED_DOMAINS": [
+    "BLACKLISTED_DOMAINS": [
         "localhost"
     ]
 }
