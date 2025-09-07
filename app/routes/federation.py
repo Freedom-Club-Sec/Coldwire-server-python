@@ -49,7 +49,7 @@ if config["federation_enabled"]:
         try:
             await asyncio.to_thread(federation_processor, url, sender, recipient, blob_data)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=e)
+            raise HTTPException(status_code=400, detail = str(e))
 
 
         return {"status": "success"}
