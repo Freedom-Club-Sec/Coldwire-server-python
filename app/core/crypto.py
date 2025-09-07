@@ -1,10 +1,5 @@
 from nacl import pwhash, bindings
 from app.core.constants import (
-    ARGON2_ITERS,
-    ARGON2_MEMORY,
-    ARGON2_LANES,
-    ARGON2_OUTPUT_LEN,
-    ARGON2_SALT_LEN,
     ML_DSA_87_NAME,
     ML_DSA_87_SK_LEN,
     ML_DSA_87_PK_LEN,
@@ -76,34 +71,6 @@ def sha3_512(data: bytes) -> bytes:
     h.update(data)
     return h.digest()
 
-
-def derive_key_argon2id(password: bytes, salt: bytes = None, output_length: int = ARGON2_OUTPUT_LEN) -> tuple[bytes, bytes]:
-    """
-    Derive a symmetric key from a password using Argon2id.
-
-    If no salt is provided, a new random salt is generated.
-
-    Args:
-        password: User-provided password bytes.
-        salt: Optional salt bytes; must be of length salt_length.
-        salt_length: Length of salt to generate if none is provided.
-        output_length: Desired length of derived key.
-
-    Returns:
-        A tuple (derived_key, salt) where:
-        - derived_key: The Argon2id-derived key of output_length bytes.
-        - salt: The salt used for derivation.
-    """
-    if salt is None:
-        salt = secrets.token_bytes(ARGON2_SALT_LEN)
-
-    return pwhash.argon2id.kdf(
-        output_length,
-        password,
-        salt,
-        opslimit = ARGON2_ITERS,
-        memlimit = ARGON2_MEMORY
-    ), salt
 
 
 

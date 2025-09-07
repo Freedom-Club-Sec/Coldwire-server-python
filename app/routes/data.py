@@ -42,7 +42,7 @@ async def data_send(metadata: str = Form(...), blob: UploadFile = File(...), use
 
     try:
         await asyncio.to_thread(data_processor, user_id, recipient, blob_data)
-    except ValueError as e:
+    except Exception as e:
         raise HTTPException(status_code=400, detail=e)
 
 

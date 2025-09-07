@@ -19,6 +19,7 @@ from app.db.redis import get_redis
 from app.db.sqlite import get_db, check_user_exists
 from app.utils.helper_utils import is_valid_domain_or_ip
 from base64 import b64encode, b64decode
+from datetime import datetime, timezone
 import json
 
 redis_client = get_redis()
@@ -44,6 +45,12 @@ def fetch_and_save_server_info(url: str) -> bytes:
     if not is_valid:
         raise ValueError("Signature is invalid!")
 
+
+    try:
+        datetime.strptime(refetch_date, "%Y-%m-%d").date()
+    except Exception:
+        raise ValueError("Invalid refetch_date format")
+
     with get_db() as conn:
         cursor = conn.cursor()
         try:
@@ -61,7 +68,7 @@ def fetch_and_save_server_info(url: str) -> bytes:
             conn.commit()
 
 
-    return public_key
+    return public_key, refetch_date
 
 
 def federation_processor(url: str, sender: str, recipient: str, blob: bytes) -> None:
@@ -75,9 +82,17 @@ def federation_processor(url: str, sender: str, recipient: str, blob: bytes) -> 
         raise ValueError("Recipient_id does not exist")
 
 
-    public_key = get_server_public_key(url)
+    public_key, refetch_date = get_server_info(url)
     if public_key is None:
-        public_key = fetch_and_save_server_info(url)
+        public_key, refetch_date = fetch_and_save_server_info(url)
+
+   
+    refetch_utc = datetime.strptime(refetch_date, "%Y-%m-%d").date()
+    today_utc = datetime.now(timezone.utc).date()
+
+    if today_utc >= previous_date:
+        public_key, refetch_date = fetch_and_save_server_info(url)
+
 
     signature = blob[:ML_DSA_87_SIGN_LEN]
     blob = blob[ML_DSA_87_SIGN_LEN:]
@@ -112,7 +127,11 @@ def federation_processor(url: str, sender: str, recipient: str, blob: bytes) -> 
     
 def get_federation_info() -> dict:
     public_key, private_key = get_our_keys()
-    refetch_date = "testing"
+
+    today_utc = datetime.now(timezone.utc).date()
+
+    refetch_date = today_utc + timedelta(days = 1)
+    refetch_date = refetch_date.strftime("%Y-%m-%d")
 
     signature = create_signature(ML_DSA_87_NAME, config["YOUR_DOMAIN_OR_IP"].encode("utf-8") + refetch_date.encode("utf-8"), private_key)
 
@@ -130,16 +149,16 @@ def get_our_keys() -> tuple[bytes, bytes]:
         return cursor.fetchone()
 
 
-def get_server_public_key(url: str) -> bytes:
+def get_server_info(url: str) -> tuple[bytes, str]:
     with get_db() as conn:
         cursor = conn.cursor()
 
-        cursor.execute("SELECT public_key FROM servers WHERE url = ?", (url,))
-        public_key = cursor.fetchone()
-        if public_key is None:
+        cursor.execute("SELECT public_key, refetch_date FROM servers WHERE url = ?", (url,))
+        info = cursor.fetchone()
+        if info is None:
             return None
         else:
-            return public_key[0]
+            return info
 
 
 def send_to_server(url: str, sender: str, recipient: str, blob: bytes):
