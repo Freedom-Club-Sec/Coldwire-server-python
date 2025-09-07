@@ -19,6 +19,13 @@ And lastly, DO NOT expose the server directly to the internet! You must put it b
 
 
 
+# Preparation
+This implmentation uses Redis, install it before continuing:
+```bash
+sudo apt install redis-server
+```
+
+
 # Setup
 Install liboqs-python:
 ```bash
