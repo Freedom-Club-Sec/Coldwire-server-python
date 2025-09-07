@@ -9,7 +9,7 @@ router = APIRouter()
 
 if config["federation_enabled"]:
     @router.get("/federation/info")
-    async def federation_info(request: Request, response: Response):
+    async def federation_info():
         data = await asyncio.to_thread(get_federation_info)
 
         return data
@@ -46,10 +46,10 @@ if config["federation_enabled"]:
         sender = metadata["sender"]
         url    = metadata["url"]
 
-        # try:
-        await asyncio.to_thread(federation_processor, url, sender, recipient, blob_data)
-        # except Exception as e:
-        # raise HTTPException(status_code=400, detail = str(e))
+        try:
+            await asyncio.to_thread(federation_processor, url, sender, recipient, blob_data)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail = str(e))
 
 
         return {"status": "success"}
