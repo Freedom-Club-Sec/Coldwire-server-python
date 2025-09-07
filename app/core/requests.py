@@ -87,7 +87,7 @@ def http_request(url: str, method: str, auth_token: str = None, metadata: dict =
 
 
     if method.upper() in ["POST", "PUT"]:
-        if metadata and blob:
+        if blob:
 
             # a-zA-Z0-9, same as what Chromium-based browser do.
             ALPHABET_ASCII  = string.ascii_letters + string.digits
@@ -99,8 +99,9 @@ def http_request(url: str, method: str, auth_token: str = None, metadata: dict =
             CRLF = "\r\n"
             body = b""
 
-            body += encode_field("metadata", json.dumps(metadata), boundary, CRLF)
-
+            if metadata is not None:
+                body += encode_field("metadata", json.dumps(metadata), boundary, CRLF)
+            
             body += encode_file("blob", "blob.bin", blob, boundary, CRLF)
 
             if not body.endswith(CRLF.encode("utf-8")):
