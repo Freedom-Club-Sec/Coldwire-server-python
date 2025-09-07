@@ -19,12 +19,12 @@ from app.db.redis import get_redis
 from app.db.sqlite import get_db, check_user_exists
 from app.utils.helper_utils import is_valid_domain_or_ip
 from base64 import b64encode, b64decode
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
 
 redis_client = get_redis()
 
-def fetch_and_save_server_info(url: str) -> bytes:
+def fetch_and_save_server_info(url: str) -> tuple[bytes, str]:
     try:
         response = json.loads(http_request(f"https://{url}/federation/info", "GET").decode())
     except Exception:
@@ -90,7 +90,7 @@ def federation_processor(url: str, sender: str, recipient: str, blob: bytes) -> 
     refetch_utc = datetime.strptime(refetch_date, "%Y-%m-%d").date()
     today_utc = datetime.now(timezone.utc).date()
 
-    if today_utc >= previous_date:
+    if today_utc >= refetch_utc:
         public_key, refetch_date = fetch_and_save_server_info(url)
 
 
@@ -156,7 +156,7 @@ def get_server_info(url: str) -> tuple[bytes, str]:
         cursor.execute("SELECT public_key, refetch_date FROM servers WHERE url = ?", (url,))
         info = cursor.fetchone()
         if info is None:
-            return None
+            return None, None
         else:
             return info
 
