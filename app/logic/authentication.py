@@ -13,13 +13,13 @@ import json
 
 redis_client = get_redis()
 
-def handle_authentication(public_key: bytes, user_id: str = None) -> (str, str):
+def handle_authentication_jwt(public_key: bytes, user_id: str) -> (str, str):
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # If the user_id is empty, means the user wants to register.
-        # We keep generating user_ids and checking if they're duplicated or not
-        # if we find one not already registered, we create a JWT token with it inside.
+        # If the user_id is empty, we keep generating user_ids and 
+        # checking if they're duplicated or not. if we find one 
+        # not already registered, that's the user's ID.
 
         if user_id == "": 
             while True:
@@ -30,27 +30,35 @@ def handle_authentication(public_key: bytes, user_id: str = None) -> (str, str):
                     continue
 
                 break
-
-        # As the user_id is already sanitization checked in the routes function, we can safely bundle it in.
-        user_token = create_jwt_token({"id": user_id})
         
-        try:
-            cursor.execute("""
-                INSERT INTO users (id, public_key)
-                VALUES (?, ?)
-            """,
-                (
-                    user_id, 
-                    public_key,
-                )
-            )
+            # Inserting public-key here is safe, because the SQL schema ensures public_key is unique for every user
+            # if user tries to use another users public-key, this will raise an exception.
+            cursor.execute("""INSERT INTO users (id, public_key) VALUES (?, ?)""", ( user_id, public_key, ))
 
             conn.commit()
-        except sqlite3.IntegrityError:
-            pass
+        
+        user_token = create_jwt_token({"id": user_id})
+
 
         return (user_id, user_token)
 
+
+def handle_authentication_init(user_id: str, public_key: str) -> str:
+    if public_key:
+        return set_verification_challenge(user_id, public_key)
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        if user_id:
+            cursor.execute("SELECT public_key FROM users WHERE id = ?", (user_id,))
+            public_key = cursor.fetchone()
+            if public_key is None:
+                raise ValueError("User ID does not exist!")
+
+            public_key = b64encode(public_key[0]).decode()
+
+            return set_verification_challenge(user_id, public_key)
 
 def set_verification_challenge(user_id: str, public_key: str) -> str:
     challenge = b64encode(secrets.token_bytes(CHALLENGE_LEN)).decode()
