@@ -74,18 +74,3 @@ def get_challenge_data(challenge: str) -> (str, str):
     raise ValueError("Challenge not found")
 
 
-def check_id_public_key(user_id: str, public_key: bytes) -> bool:
-    if not user_id.isdigit():
-        return False
-
-    with get_db() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT public_key FROM users WHERE id = ?", (user_id,))
-        row = cursor.fetchone()
-        if row:
-            if row[0] == public_key:
-               return True
-
-        return False
-
