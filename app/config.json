@@ -1,5 +1,5 @@
 {
-    "YOUR_DOMAIN_OR_IP": "",
+    "YOUR_DOMAIN_OR_IP": "idk",
     "federation_enabled": true,
     "BLACKLISTED_IP_NETWORKS": [
         "127.0.0.0/8",
