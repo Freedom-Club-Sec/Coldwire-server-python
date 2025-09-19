@@ -1,21 +1,17 @@
 # Coldwire-server
 
-This is the official Python server implementation for Coldwire secure messanger
+This is an official implementation of Coldwire protocol in Python.
+
 
 # What is Coldwire messenger ?
 Coldwire messenger is an end-to-end encrypted, metadata-resistant, federated messenger.
 You can check official client here: [Coldwire Messenger](https://github.com/Freedom-Club-Sec/Coldwire)
 
 # Important Notes
-We believe this server implementation should be OK for production, but it's important to note that this implementation may be susceptible to Denial-of-Service attacks, 
-you can mitigate most of the risk by using a DDoS mitigation solutions like Cloudflare, or similar.
+This implementation is mainly used for prototyping protocol changes before being implemented in the [Go implementation](https://github.com/Freedom-Club-Sec/Coldwire-server)
+Therefore, you must **USE WITH CAUTION**, even  though this implementation is fine for testing and or extremely low user-base, we still **highly** recommend using the Go implementation which can be found at https://github.com/Freedom-Club-Sec/Coldwire-server
 
-Additionally, you must set up HTTPS properly for your server. We recommend using Let's Encrypt project, but any other CA is fine too.
-Additionally, we recommend you to block HTTP ports (80, 8080, etc) to prevent HTTP Downgrading attacks.
-
-Using HTTPS is important for federation security, if you disable federation in the configuration file, it might be fine to operate without a certificate. (Highly unrecommended though)
-
-And lastly, DO NOT expose the server directly to the internet! You must put it behind a web-server (e.g. Apache, or Nginx)
+And lastly, if you do use this server for production, **DO NOT** expose the server directly to the internet! You must put it behind a web-server (e.g. Apache, or Nginx)
 
 
 
