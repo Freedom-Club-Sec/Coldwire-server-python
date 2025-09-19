@@ -5,7 +5,7 @@ This is an official implementation of Coldwire protocol in Python.
 
 # What is Coldwire messenger ?
 Coldwire messenger is an end-to-end encrypted, metadata-resistant, federated messenger.
-You can check official client here: [Coldwire Messenger](https://github.com/Freedom-Club-Sec/Coldwire)
+You can check official client here: [Coldwire Messenger](https://github.com/Freedom-Club-Sec/Coldwire-Desktop)
 
 # Important Notes
 This implementation is mainly used for prototyping protocol changes before being implemented in the [Go implementation](https://github.com/Freedom-Club-Sec/Coldwire-server)
