@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request, HTTPException, Response, Depends, Form, UploadFile, File
-from app.logic.data import check_new_data, data_processor
+from fastapi import APIRouter, Request, HTTPException, Response, Depends, Form, UploadFile, File, Query
+from app.logic.data import check_new_data, delete_data, data_processor
 from app.utils.jwt import verify_jwt_token
 from app.core.constants import LONGPOLL_MAX
+from typing import Optional
 import asyncio
 import json
 
@@ -9,11 +10,13 @@ router = APIRouter()
 
 
 @router.get("/data/longpoll")
-async def get_data_longpoll(request: Request, response: Response, user=Depends(verify_jwt_token)):
+async def get_data_longpoll(request: Request, response: Response, acks: Optional[list[str]] = Query(None), user=Depends(verify_jwt_token)):
+    if acks:
+        await asyncio.to_thread(delete_data, user["id"], acks)
+        
     for _ in range(LONGPOLL_MAX):
         if await request.is_disconnected():
-            # Don't attempt to check for new data if client disconnects before LONGPOLL_MAX seconds
-            # This is crucial to perserve data as they get deleted after being read 
+            # Don't bother checking for new data if client disconnects before LONGPOLL_MAX seconds
             return Response(content=b'', media_type="application/octet-stream")
 
         data = await asyncio.to_thread(check_new_data, user["id"])

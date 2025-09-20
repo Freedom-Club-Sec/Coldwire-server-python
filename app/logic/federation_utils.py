@@ -21,6 +21,7 @@ from app.utils.helper_utils import is_valid_domain_or_ip
 from base64 import b64encode, b64decode
 from datetime import datetime, timezone, timedelta
 import json
+import secrets
 
 redis_client = get_redis()
 
@@ -117,7 +118,7 @@ def federation_processor(url: str, sender: str, recipient: str, blob: bytes) -> 
     payload = sender_with_url + COLDWIRE_DATA_SEP + blob
     length_prefix = len(payload).to_bytes(COLDWIRE_LEN_OFFSET, "big")
 
-    payload = length_prefix + payload
+    payload = secrets.token_bytes(32) + length_prefix + payload
 
     redis_client.rpush(recipient, payload)
 

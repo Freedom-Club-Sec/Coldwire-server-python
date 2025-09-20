@@ -7,24 +7,34 @@ from app.core.constants import (
         COLDWIRE_LEN_OFFSET,
         COLDWIRE_DATA_SEP
 )
+import secrets
+import base64
 
 
 redis_client = get_redis()
 
 
-def get_redis_list(client, key: str) -> list:
-    data = b""
-    while True:
-        raw = client.lpop(key)
-        if raw is None:
-            break
+def b64u_decode(data: str) -> bytes:
+    padding = 4 - (len(data) % 4)
+    if padding != 4:
+        data += "=" * padding
+    return base64.urlsafe_b64decode(data)
 
-        data += raw
 
-    return data
+def delete_data(user_id: str, acks: list[str]) -> None:
+    byte_acks = [b64u_decode(p) for p in acks]
+
+    values = redis_client.lrange(user_id, 0, -1)  
+    for v in values:
+        if any(v.startswith(pref) for pref in byte_acks):
+            res = redis_client.lrem(user_id, 0, v)
 
 def check_new_data(user_id: str) -> bytes:
-    return get_redis_list(redis_client, user_id)
+    data = redis_client.lrange(user_id, 0, -1)
+    if not data:
+        return b""
+
+    return b"".join(data)
 
 def data_processor(user_id: str, recipient: str, blob: bytes) -> None:
     if recipient.isdigit():
@@ -41,10 +51,10 @@ def data_processor(user_id: str, recipient: str, blob: bytes) -> None:
         if COLDWIRE_DATA_SEP in user_id:
             raise ValueError("User ID cannot have null byte!")
 
-        payload = user_id + COLDWIRE_DATA_SEP + blob
+        payload =  user_id + COLDWIRE_DATA_SEP + blob
         length_prefix = len(payload).to_bytes(COLDWIRE_LEN_OFFSET, "big")
 
-        payload = length_prefix + payload
+        payload = secrets.token_bytes(32) + length_prefix + payload
 
         redis_client.rpush(recipient, payload)
 
