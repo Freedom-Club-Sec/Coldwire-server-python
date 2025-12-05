@@ -9,12 +9,11 @@ You can check official client here: [Coldwire Messenger](https://github.com/Free
 
 # Important Notes
 
-This implementation is mainly used for prototyping protocol changes before being implemented in the [Go implementation](https://github.com/Freedom-Club-Sec/Coldwire-server)
+This implementation is mainly used for prototyping protocol changes before being implemented in the production-ready [Go implementation](https://github.com/Freedom-Club-Sec/Coldwire-server)
 
-Therefore, you must **USE WITH CAUTION**, even  though this implementation is fine for testing and or extremely low user-base, we still **highly** recommend using the Go implementation which can be found at https://github.com/Freedom-Club-Sec/Coldwire-server
+Therefore, you must **USE WITH CAUTION**, this implementation is fine for testing and prototyping locally.
 
-And lastly, if you do use this server for production, **DO NOT** expose the server directly to the internet! You must put it behind a web-server (e.g. Apache, or Nginx)
-
+**⚠️⚠️This implementation is not meant for production use!⚠️⚠️**
 
 
 # Preparation
